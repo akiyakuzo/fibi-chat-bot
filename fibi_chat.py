@@ -221,6 +221,99 @@ IMAGE_AND_GIF_CHOICES = [
     "https://files.catbox.moe/52mpty.jpg", "https://files.catbox.moe/rvgoip.jpg"
 ] 
 
+# ========== PREFIX COMMANDS (Lệnh !datcauhoi, !xoa, !help) ==========
+
+# Tên lệnh prefix: !datcauhoi [câu hỏi]
+@bot.command(name="datcauhoi", description="💬 Hỏi Phoebe Xinh Đẹp (Lệnh Prefix)")
+async def prefix_datcauhoi(ctx: commands.Context, *, cauhoi: str):
+    # Dùng ctx.typing() để bot hiển thị đang gõ
+    async with ctx.typing():
+        user_id = str(ctx.author.id)
+        
+        # 1. Tạo Embed ban đầu và gửi
+        embed = discord.Embed(
+            title=f"{BOT_NAME} trả lời 💕",
+            description=f"**Người hỏi:** {ctx.author.mention}\n**Câu hỏi:** {cauhoi}\n**Fibi:** Đang nói...",
+            color=0xFFC0CB
+        )
+        embed.set_thumbnail(url=random.choice(IMAGE_AND_GIF_CHOICES)) 
+
+        # Gửi tin nhắn ban đầu (không dùng follow.up vì là lệnh Prefix)
+        response_message = await ctx.send(embed=embed)
+
+        # 2. Xử lý Stream từ Gemini
+        full_response = ""
+        
+        async for chunk in ask_gemini_stream(user_id, cauhoi):
+            full_response += chunk
+            
+        # 3. Cập nhật tin nhắn cuối cùng (Sau khi nhận đủ câu trả lời)
+        embed.description = f"**Người hỏi:** {ctx.author.mention}\n**Câu hỏi:** {cauhoi}\n**Fibi:** {full_response}"
+        try:
+            # Chỉ edit một lần khi hoàn thành
+            await response_message.edit(embed=embed)
+        except (discord.errors.HTTPException, discord.errors.NotFound) as e:
+            print(f"🚨 LỖI CHỈNH SỬA CUỐI CÙNG (PREFIX): {type(e).__name__}")
+            await ctx.send(f"⚠️ Em trả lời xong rồi, nhưng không chỉnh sửa được tin nhắn cuối cùng: {full_response}")
+
+
+# Tên lệnh prefix: !xoa
+@bot.command(name="xoa", description="🧹 Xóa lịch sử hội thoại của bạn (Lệnh Prefix)")
+async def prefix_delete_conv(ctx: commands.Context):
+    user_id = str(ctx.author.id)
+    state_manager.clear_memory(user_id)
+    
+    msg = f"🧹 Phoebe đã dọn sạch trí nhớ của **{ctx.author.name}**, sẵn sàng nói chuyện lại nè~ 💖"
+    # Gửi tin nhắn trả lời
+    await ctx.send(msg)
+
+
+# Tên lệnh prefix: !help
+@bot.command(name="help", description="❓ Xem danh sách lệnh của Phoebe")
+async def prefix_help(ctx: commands.Context):
+    # Dùng ctx.typing() để bot hiển thị đang gõ
+    async with ctx.typing():
+        # Tạo Embed cho lệnh Help
+        embed = discord.Embed(
+            title="📚 Hướng dẫn sử dụng Phoebe Xinh Đẹp 💖",
+            description=f"Em là **{BOT_NAME}**, bot AI dựa trên Gemini. Em có thể trò chuyện, trả lời các câu hỏi về mọi lĩnh vực, và đặc biệt là giải toán, làm thơ!",
+            color=0xFFC0CB # Màu hồng
+        )
+        embed.set_thumbnail(url=random.choice(IMAGE_AND_GIF_CHOICES))
+        
+        # Thêm các trường (Fields) cho Embed
+        embed.add_field(
+            name="🤖 Lệnh Tin nhắn (Prefix: `!`)",
+            value="""
+            `!datcauhoi <câu hỏi>`: Trò chuyện và hỏi em bất cứ điều gì.
+            `!xoa`: Xóa lịch sử trò chuyện hiện tại (giúp em quên đi mọi thứ trước đó).
+            `!help`: Xem hướng dẫn này.
+            """,
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚡ Lệnh Tương tác (Slash Commands: `/`)",
+            value="""
+            `/datcauhoi <câu hỏi>`: (Chức năng tương tự `!datcauhoi`, nhưng có hiệu ứng gõ đẹp hơn).
+            `/deleteoldconversation`: (Chức năng tương tự `!xoa`).
+            
+            *(⚠️ Nếu lệnh `/` không hoạt động, vui lòng sử dụng lệnh `!datcauhoi`.)*
+            """,
+            inline=False
+        )
+        
+        embed.add_field(
+            name="📌 Mẹo nhỏ",
+            value="Nếu anh nói những từ như **'buồn'**, **'mệt'**, hay **'stress'**, em sẽ tự động chuyển sang phong cách trả lời **an ủi và nhẹ nhàng** đó nha! (* / ω \\ *)",
+            inline=False
+        )
+        
+        embed.set_footer(text=f"Phiên bản: {MODEL_NAME} | Được phát triển bởi {ctx.author.name}")
+
+        # Gửi tin nhắn Help
+        await ctx.send(embed=embed)
+
 # ========== SLASH COMMANDS (ĐÃ ĐỔI TÊN /hoi -> /datcauhoi) ==========
 @bot.tree.command(name="datcauhoi", description="💬 Hỏi Phoebe Xinh Đẹp!")
 @app_commands.describe(cauhoi="Nhập câu hỏi của bạn")
