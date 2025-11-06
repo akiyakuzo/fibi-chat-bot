@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: PhoebeBot
+    name: Fibi_bell
     env: python
     branch: main
     buildCommand: "./deploy.sh"
-    startCommand: "python chatbot.py"
+    startCommand: "python fibi_chat.py"
     pythonVersion: 3.11
     autoDeploy: true
