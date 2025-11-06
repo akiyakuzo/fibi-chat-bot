@@ -172,7 +172,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 tree = bot.tree
 
 # ========== BOT STATUS ==========
-status_list = [discord.Status.online, discord.Status.idle, discord.Status.dnd]
+status_list = [discord.Status.online]
 activity_list = [
     discord.Game("💖 Trò chuyện cùng anh"),
     discord.Game("✨ Giải Toán và Thơ"),
