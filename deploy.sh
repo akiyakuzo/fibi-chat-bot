@@ -33,4 +33,4 @@ echo "🔍 Checking google-generativeai version..."
 
 # ==== 6. Chạy bot ====
 echo "💫 Starting Phoebe..."
-exec "$PYTHON_BIN" chatbot.py
+exec "$PYTHON_BIN" fibi_chat.py
