@@ -168,7 +168,8 @@ async def ask_gemini_stream(user_id: str, user_input: str):
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True 
-bot = commands.Bot(command_prefix="!", intents=intents)
+# ĐÃ SỬA LỖI: help_command=None để tắt lệnh !help mặc định của Discord
+bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 tree = bot.tree
 
 # ========== BOT STATUS ==========
